@@ -18,11 +18,15 @@ func main() {
 		Handler: mux,
 		Addr:    ":" + "8080",
 	}
+	fsServer := http.StripPrefix("/app", http.FileServer(http.Dir(".")))
+	mux.Handle("/app/", cfg.MiddlewareMetricsInc(fsServer))
 
-	mux.Handle("/app/", cfg.MiddlewareMetricsInc(handlerFileServer()))
-	mux.HandleFunc("GET /healthz", handlers.HandlerHealth)
-	mux.HandleFunc("GET /metrics", cfg.HandlerMetrics)
-	mux.HandleFunc("POST /reset", cfg.HandlerReset)
+	// /api namespace
+	mux.HandleFunc("GET /api/healthz", handlers.HandlerHealth)
+
+	// /admin namespace
+	mux.HandleFunc("GET /admin/metrics", cfg.HandlerMetrics)
+	mux.HandleFunc("POST /admin/reset", cfg.HandlerReset)
 
 	log.Printf("Listening on port: %s", port)
 	err := server.ListenAndServe()
