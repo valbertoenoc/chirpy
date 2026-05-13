@@ -23,6 +23,7 @@ func main() {
 
 	// /api namespace
 	mux.HandleFunc("GET /api/healthz", handlers.HandlerHealth)
+	mux.HandleFunc("POST /api/validate_chirp", handlers.HandlerValidateChirp)
 
 	// /admin namespace
 	mux.HandleFunc("GET /admin/metrics", cfg.HandlerMetrics)
