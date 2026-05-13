@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	filePathRoot := "/app/"
+	port := "8080"
 
 	serve := http.NewServeMux()
 	server := http.Server{
