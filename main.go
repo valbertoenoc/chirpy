@@ -44,7 +44,8 @@ func main() {
 
 	// /api namespace
 	mux.HandleFunc("GET /api/healthz", handlerHealth)
-	mux.HandleFunc("POST /api/validate_chirp", HandlerValidateChirp)
+	mux.HandleFunc("POST /api/validate_chirp", handlerValidateChirp)
+	mux.HandleFunc("POST /api/users", cfg.handlerCreateUser)
 
 	// /admin namespace
 	mux.HandleFunc("GET /admin/metrics", cfg.HandlerMetrics)

@@ -8,7 +8,7 @@ import (
 	"github.com/valbertoenoc/chirpy/internal/utils"
 )
 
-func HandlerValidateChirp(w http.ResponseWriter, r *http.Request) {
+func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
 	}
