@@ -15,6 +15,7 @@ import (
 type apiConfig struct {
 	db             *database.Queries
 	fileserverHits atomic.Int32
+	platform       string
 }
 
 func main() {
@@ -22,6 +23,7 @@ func main() {
 	const port = "8080"
 
 	godotenv.Load()
+	platform := os.Getenv("PLATFORM")
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		log.Fatal("DB_URL must be set")
@@ -31,7 +33,8 @@ func main() {
 	dbQueries := database.New(dbConn)
 
 	cfg := apiConfig{
-		db: dbQueries,
+		db:       dbQueries,
+		platform: platform,
 	}
 
 	mux := http.NewServeMux()
