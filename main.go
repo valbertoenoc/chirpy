@@ -47,7 +47,11 @@ func main() {
 
 	// /api namespace
 	mux.HandleFunc("GET /api/healthz", handlerHealth)
-	mux.HandleFunc("POST /api/validate_chirp", handlerValidateChirp)
+	// api namespace /chirps resource
+	mux.HandleFunc("POST /api/chirps", cfg.handlerCreateChirp)
+	mux.HandleFunc("GET /api/chirps", cfg.handlerListChirps)
+	mux.HandleFunc("GET /api/chirps/{id}", cfg.handlerGetChirp)
+	// api namespace /users resource
 	mux.HandleFunc("POST /api/users", cfg.handlerCreateUser)
 
 	// /admin namespace
