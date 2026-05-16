@@ -53,6 +53,7 @@ func main() {
 	mux.HandleFunc("GET /api/chirps/{id}", cfg.handlerGetChirp)
 	// api namespace /users resource
 	mux.HandleFunc("POST /api/users", cfg.handlerCreateUser)
+	mux.HandleFunc("POST /api/login", cfg.handlerLogin)
 
 	// /admin namespace
 	mux.HandleFunc("GET /admin/metrics", cfg.HandlerMetrics)

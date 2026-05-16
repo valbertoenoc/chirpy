@@ -1,10 +1,24 @@
 package auth
 
-func HashPassword(password string) (string, error) {
+import (
+	"fmt"
 
-	return "", nil
+	"github.com/alexedwards/argon2id"
+)
+
+func HashPassword(password string) (string, error) {
+	hashedPassword, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		return "", fmt.Errorf("failed at hashing password: %v", err)
+	}
+	return hashedPassword, nil
 }
 
 func CheckPasswordHash(password, hash string) (bool, error) {
-	return true, nil
+	match, err := argon2id.ComparePasswordAndHash(password, hash)
+	if err != nil {
+		return false, fmt.Errorf("something went wrong in the hash comparison: %v", err)
+
+	}
+	return match, nil
 }
