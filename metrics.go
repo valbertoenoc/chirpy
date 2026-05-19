@@ -27,13 +27,13 @@ func (c *apiConfig) HandlerMetrics(w http.ResponseWriter, r *http.Request) {
 
 func (c *apiConfig) HandlerReset(w http.ResponseWriter, r *http.Request) {
 	if c.platform != "DEV" {
-		respondWithError(w, http.StatusForbidden, "forbidden operation.")
+		respondWithError(w, http.StatusForbidden, "forbidden operation.", nil)
 		return
 	}
 
 	err := c.db.DeleteUsers(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
 		return
 	}
 

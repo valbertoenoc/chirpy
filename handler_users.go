@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -28,13 +27,13 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("error: %s", err))
+		respondWithError(w, http.StatusBadRequest, "error deconding request body", err)
 		return
 	}
 
 	hashedPassword, err := auth.HashPassword(params.Password)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error: %s", err))
+		respondWithError(w, http.StatusInternalServerError, "incorrect email or password", err)
 		return
 	}
 
@@ -44,7 +43,7 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	})
 
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
 		return
 	}
 
@@ -56,39 +55,56 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Password string `json:"password"`
 		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
-	type returnVals struct {
-		ID        uuid.UUID `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
+	type response struct {
 		Email     string    `json:"email"`
+		CreatedAt time.Time `json:"created_at`
+		UpdatedAt time.Time `json:"created_at`
+		ID        uuid.UUID `json:"id"`
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "no JWT found", err)
+		return
+	}
+
+	validatedID, err := auth.ValidateJWT(token, cfg.secretKey)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "JWT invalid", err)
+		return
 	}
 
 	var params parameters
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("error: %s", err))
+		respondWithError(w, http.StatusBadRequest, "unable to parse request body", err)
 		return
 	}
 
-	user, err := cfg.db.GetUserByEmail(r.Context(), params.Email)
+	hashedPassword, err := auth.HashPassword(params.Password)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "incorrect email or password")
+		respondWithError(w, http.StatusBadRequest, "unable to hash password", err)
 		return
 	}
 
-	if ok, _ := auth.CheckPasswordHash(params.Password, user.HashedPassword); !ok {
-		respondWithError(w, http.StatusUnauthorized, "incorrect email or password")
+	user, err := cfg.db.UpdateUser(r.Context(), database.UpdateUserParams{
+		Email:          params.Email,
+		HashedPassword: hashedPassword,
+		ID:             validatedID,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "failed at update user", err)
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, returnVals{
+	respondWithJSON(w, http.StatusOK, response{
 		ID:        user.ID,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,

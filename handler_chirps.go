@@ -3,53 +3,76 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/valbertoenoc/chirpy/internal/auth"
 	"github.com/valbertoenoc/chirpy/internal/database"
 	"github.com/valbertoenoc/chirpy/internal/utils"
 )
 
 func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Body   string    `json:"body"`
-		UserID uuid.UUID `json:"user_id"`
+		Body string `json:"body"`
+	}
+
+	type response struct {
+		ID        uuid.UUID `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Body      string    `json:"body"`
+		Token     string    `json:"token"`
+		UserID    uuid.UUID `json:"user_id"`
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "no JWT found", err)
+		return
+	}
+
+	userID, err := auth.ValidateJWT(token, cfg.secretKey)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "invalid JWT token", err)
+		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	var params parameters
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "unable to decode request body")
+		respondWithError(w, http.StatusBadRequest, "unable to decode request body", err)
 		return
 	}
 
 	if len(params.Body) > 140 {
-		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
+		respondWithError(w, http.StatusBadRequest, "Chirp is too long", nil)
 		return
 	}
 
 	chirp, err := cfg.db.CreateChirp(r.Context(), database.CreateChirpParams{
 		Body:   utils.RedactProfanity(params.Body),
-		UserID: params.UserID,
+		UserID: userID,
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, database.Chirp{
+	respondWithJSON(w, http.StatusCreated, response{
 		ID:        chirp.ID,
 		CreatedAt: chirp.CreatedAt,
 		UpdatedAt: chirp.UpdatedAt,
 		Body:      chirp.Body,
-		UserID:    params.UserID,
+		Token:     token,
+		UserID:    userID,
 	})
 }
 
 func (cfg *apiConfig) handlerListChirps(w http.ResponseWriter, r *http.Request) {
 	chirps, err := cfg.db.ListChirps(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
 		return
 	}
 
@@ -60,7 +83,7 @@ func (cfg *apiConfig) handlerGetChirp(w http.ResponseWriter, r *http.Request) {
 	id := uuid.MustParse(r.PathValue("id"))
 	chirp, err := cfg.db.GetChirp(r.Context(), id)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, err.Error())
+		respondWithError(w, http.StatusNotFound, err.Error(), err)
 		return
 	}
 

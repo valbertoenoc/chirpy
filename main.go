@@ -16,6 +16,7 @@ type apiConfig struct {
 	db             *database.Queries
 	fileserverHits atomic.Int32
 	platform       string
+	secretKey      string
 }
 
 func main() {
@@ -25,6 +26,7 @@ func main() {
 	godotenv.Load()
 	platform := os.Getenv("PLATFORM")
 	dbURL := os.Getenv("DB_URL")
+	secretKey := os.Getenv("SECRET_KEY")
 	if dbURL == "" {
 		log.Fatal("DB_URL must be set")
 	}
@@ -33,8 +35,9 @@ func main() {
 	dbQueries := database.New(dbConn)
 
 	cfg := apiConfig{
-		db:       dbQueries,
-		platform: platform,
+		db:        dbQueries,
+		platform:  platform,
+		secretKey: secretKey,
 	}
 
 	mux := http.NewServeMux()
@@ -53,7 +56,10 @@ func main() {
 	mux.HandleFunc("GET /api/chirps/{id}", cfg.handlerGetChirp)
 	// api namespace /users resource
 	mux.HandleFunc("POST /api/users", cfg.handlerCreateUser)
+	mux.HandleFunc("PUT /api/users", cfg.handlerUpdateUser)
 	mux.HandleFunc("POST /api/login", cfg.handlerLogin)
+	mux.HandleFunc("POST /api/refresh", cfg.handlerRefresh)
+	mux.HandleFunc("POST /api/revoke", cfg.handlerRevoke)
 
 	// /admin namespace
 	mux.HandleFunc("GET /admin/metrics", cfg.HandlerMetrics)
