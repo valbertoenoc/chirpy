@@ -17,6 +17,7 @@ type apiConfig struct {
 	fileserverHits atomic.Int32
 	platform       string
 	secretKey      string
+	polkaKey       string
 }
 
 func main() {
@@ -25,8 +26,9 @@ func main() {
 
 	godotenv.Load()
 	platform := os.Getenv("PLATFORM")
-	dbURL := os.Getenv("DB_URL")
 	secretKey := os.Getenv("SECRET_KEY")
+	polkaKey := os.Getenv("POLKA_KEY")
+	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		log.Fatal("DB_URL must be set")
 	}
@@ -38,6 +40,7 @@ func main() {
 		db:        dbQueries,
 		platform:  platform,
 		secretKey: secretKey,
+		polkaKey:  polkaKey,
 	}
 
 	mux := http.NewServeMux()
@@ -62,6 +65,9 @@ func main() {
 	mux.HandleFunc("POST /api/login", cfg.handlerLogin)
 	mux.HandleFunc("POST /api/refresh", cfg.handlerRefresh)
 	mux.HandleFunc("POST /api/revoke", cfg.handlerRevoke)
+
+	// api namespace /webhooks
+	mux.HandleFunc("POST /api/polka/webhooks", cfg.handlerUpgradeToRed)
 
 	// /admin namespace
 	mux.HandleFunc("GET /admin/metrics", cfg.HandlerMetrics)
