@@ -63,8 +63,8 @@ func (cfg *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) 
 
 	type response struct {
 		Email     string    `json:"email"`
-		CreatedAt time.Time `json:"created_at`
-		UpdatedAt time.Time `json:"created_at`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
 		ID        uuid.UUID `json:"id"`
 	}
 

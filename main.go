@@ -54,6 +54,8 @@ func main() {
 	mux.HandleFunc("POST /api/chirps", cfg.handlerCreateChirp)
 	mux.HandleFunc("GET /api/chirps", cfg.handlerListChirps)
 	mux.HandleFunc("GET /api/chirps/{id}", cfg.handlerGetChirp)
+	mux.HandleFunc("DELETE /api/chirps/{id}", cfg.handlerDeleteChirp)
+
 	// api namespace /users resource
 	mux.HandleFunc("POST /api/users", cfg.handlerCreateUser)
 	mux.HandleFunc("PUT /api/users", cfg.handlerUpdateUser)
