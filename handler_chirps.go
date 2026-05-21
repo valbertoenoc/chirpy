@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -106,10 +107,12 @@ func (cfg *apiConfig) handlerListChirps(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// sort := r.URL.Query().Get("sort")
-	// if sort == "" || sort == "asc" {
-	// 	chirps.
-	// }
+	sortParam := r.URL.Query().Get("sort")
+	if sortParam == "" || sortParam == "asc" {
+		sort.Slice(chirps, func(i, j int) bool { return chirps[i].CreatedAt.Before(chirps[j].CreatedAt) })
+	} else if sortParam == "desc" {
+		sort.Slice(chirps, func(i, j int) bool { return chirps[i].CreatedAt.After(chirps[j].CreatedAt) })
+	}
 
 	respondWithJSON(w, http.StatusOK, chirps)
 }
