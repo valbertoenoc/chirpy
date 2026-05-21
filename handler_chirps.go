@@ -70,7 +70,14 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 }
 
 func (cfg *apiConfig) handlerListChirps(w http.ResponseWriter, r *http.Request) {
-	chirps, err := cfg.db.ListChirps(r.Context())
+	var chirps []database.Chirp
+	authorIDString := r.URL.Query().Get("author_id")
+	authorID, err := uuid.Parse(r.URL.Query().Get("author_id"))
+	if authorIDString != "" && err == nil {
+		chirps, err = cfg.db.GetChirpsByUserID(r.Context(), authorID)
+	} else {
+		chirps, err = cfg.db.ListChirps(r.Context())
+	}
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
 		return
