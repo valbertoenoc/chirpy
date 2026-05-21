@@ -10,21 +10,33 @@ import (
 	"github.com/valbertoenoc/chirpy/internal/database"
 )
 
+// Parameters for creating a user
+type createUserParameters struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// Return values for user creation
+type createUserResponse struct {
+	ID          uuid.UUID `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Email       string    `json:"email"`
+	IsChirpyRed bool      `json:"is_chirpy_red"`
+}
+
+// @Summary Create a user
+// @Description Create a new user with email and password
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body createUserParameters true "User parameters"
+// @Success 201 {object} createUserResponse
+// @Failure 400 {object} main.errorResponse
+// @Failure 500 {object} main.errorResponse
+// @Router /users [post]
 func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-
-	type returnVals struct {
-		ID          uuid.UUID `json:"id"`
-		CreatedAt   time.Time `json:"created_at"`
-		UpdatedAt   time.Time `json:"updated_at"`
-		Email       string    `json:"email"`
-		IsChirpyRed bool      `json:"is_chirpy_red"`
-	}
-
-	var params parameters
+	var params createUserParameters
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -48,7 +60,7 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, returnVals{
+	respondWithJSON(w, http.StatusCreated, createUserResponse{
 		ID:          user.ID,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
@@ -57,20 +69,34 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+// Parameters for updating a user
+type updateUserParameters struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// Response for user update
+type updateUserResponse struct {
+	Email       string    `json:"email"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	ID          uuid.UUID `json:"id"`
+	IsChirpyRed bool      `json:"is_chirpy_red"`
+}
+
+// @Summary Update a user
+// @Description Update user email and password
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param user body updateUserParameters true "User parameters"
+// @Success 200 {object} updateUserResponse
+// @Failure 400 {object} main.errorResponse
+// @Failure 401 {object} main.errorResponse
+// @Failure 500 {object} main.errorResponse
+// @Router /users [put]
 func (cfg *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-
-	type response struct {
-		Email       string    `json:"email"`
-		CreatedAt   time.Time `json:"created_at"`
-		UpdatedAt   time.Time `json:"updated_at"`
-		ID          uuid.UUID `json:"id"`
-		IsChirpyRed bool      `json:"is_chirpy_red"`
-	}
-
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "no JWT found", err)
@@ -83,7 +109,7 @@ func (cfg *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var params parameters
+	var params updateUserParameters
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&params)
 	if err != nil {
@@ -107,7 +133,7 @@ func (cfg *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, response{
+	respondWithJSON(w, http.StatusOK, updateUserResponse{
 		ID:          user.ID,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,

@@ -11,23 +11,41 @@ import (
 	"github.com/valbertoenoc/chirpy/internal/database"
 )
 
+// Parameters for login
+type loginParameters struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// Return values for login
+type loginResponse struct {
+	ID           uuid.UUID `json:"id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Email        string    `json:"email"`
+	IsChirpyRed  bool      `json:"is_chirpy_red"`
+	Token        string    `json:"token"`
+	RefreshToken string    `json:"refresh_token"`
+}
+
+// Response for token refresh
+type refreshResponse struct {
+	Token string `json:"token"`
+}
+
+// @Summary Login a user
+// @Description Login with email and password to get access and refresh tokens
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body loginParameters true "Login credentials"
+// @Success 200 {object} loginResponse
+// @Failure 400 {object} main.errorResponse
+// @Failure 401 {object} main.errorResponse
+// @Failure 500 {object} main.errorResponse
+// @Router /login [post]
 func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Password string `json:"password"`
-		Email    string `json:"email"`
-	}
-
-	type returnVals struct {
-		ID           uuid.UUID `json:"id"`
-		CreatedAt    time.Time `json:"created_at"`
-		UpdatedAt    time.Time `json:"updated_at"`
-		Email        string    `json:"email"`
-		IsChirpyRed  bool      `json:"is_chirpy_red"`
-		Token        string    `json:"token"`
-		RefreshToken string    `json:"refresh_token"`
-	}
-
-	var params parameters
+	var params loginParameters
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -60,7 +78,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt: time.Now().Add(expires_in),
 	})
 
-	respondWithJSON(w, http.StatusOK, returnVals{
+	respondWithJSON(w, http.StatusOK, loginResponse{
 		ID:           user.ID,
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,

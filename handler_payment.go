@@ -8,14 +8,27 @@ import (
 	"github.com/valbertoenoc/chirpy/internal/auth"
 )
 
-func (cfg *apiConfig) handlerUpgradeToRed(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Event string `json:"event"`
-		Data  struct {
-			UserID uuid.UUID `json:"user_id"`
-		} `json:"data"`
-	}
+// Parameters for webhook
+type webhookParameters struct {
+	Event string `json:"event"`
+	Data  struct {
+		UserID uuid.UUID `json:"user_id"`
+	} `json:"data"`
+}
 
+// @Summary Upgrade user to Chirpy Red
+// @Description Handle webhook from Polka to upgrade user to Chirpy Red
+// @Tags webhooks
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "API Key"
+// @Param body body webhookParameters true "Webhook parameters"
+// @Success 204 {string} string "No Content"
+// @Failure 400 {object} main.errorResponse
+// @Failure 401 {object} main.errorResponse
+// @Failure 404 {object} main.errorResponse
+// @Router /api/polka/webhooks [post]
+func (cfg *apiConfig) handlerUpgradeToRed(w http.ResponseWriter, r *http.Request) {
 	apiKey, err := auth.GetAPIKey(r.Header)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "API Key missing", err)
@@ -26,7 +39,7 @@ func (cfg *apiConfig) handlerUpgradeToRed(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var params parameters
+	var params webhookParameters
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&params)
 	if err != nil {
