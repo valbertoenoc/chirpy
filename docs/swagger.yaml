@@ -126,6 +126,21 @@ info:
   title: Chirpy API
   version: "1.0"
 paths:
+  /api/healthz:
+    get:
+      consumes:
+      - text/plain
+      description: Returns the health status of the API
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Health check
+      tags:
+      - health
   /api/polka/webhooks:
     post:
       consumes:
@@ -174,6 +189,10 @@ paths:
       - description: Filter by author ID
         in: query
         name: author_id
+        type: string
+      - description: Sort order (asc or desc, defaults to asc)
+        in: query
+        name: sort
         type: string
       produces:
       - application/json

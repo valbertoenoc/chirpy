@@ -90,6 +90,7 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 // @Accept json
 // @Produce json
 // @Param author_id query string false "Filter by author ID"
+// @Param sort query string false "Sort order (asc or desc, defaults to asc)"
 // @Success 200 {array} database.Chirp
 // @Failure 500 {object} main.errorResponse
 // @Router /chirps [get]

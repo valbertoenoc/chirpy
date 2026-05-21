@@ -24,6 +24,29 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/healthz": {
+            "get": {
+                "description": "Returns the health status of the API",
+                "consumes": [
+                    "text/plain"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/polka/webhooks": {
             "post": {
                 "description": "Handle webhook from Polka to upgrade user to Chirpy Red",
@@ -101,6 +124,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Filter by author ID",
                         "name": "author_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order (asc or desc, defaults to asc)",
+                        "name": "sort",
                         "in": "query"
                     }
                 ],
